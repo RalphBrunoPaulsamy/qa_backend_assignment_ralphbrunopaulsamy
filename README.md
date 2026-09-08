@@ -119,3 +119,15 @@ mvn -q clean test-compile
 ```
 
 Run a single feature using its runner or tag command above. Live tests require network access and valid GitLab credentials.
+
+## To Run>> 
+source ./.env.local && mvn -q -Dtest=com.abnamro.gitlab.runner.CucumberTest -Dcucumber.filter.tags='@createAPITest' test
+
+source ./.env.local && mvn -q -Dtest=com.abnamro.gitlab.runner.CucumberTest -Dcucumber.filter.tags='@getAPITest' test
+
+source ./.env.local && mvn -q -Dtest=com.abnamro.gitlab.runner.CucumberTest -Dcucumber.filter.tags='@updateAPITest' test
+
+source ./.env.local && mvn -q -Dtest=com.abnamro.gitlab.runner.CucumberTest -Dcucumber.filter.tags='@deleteAPITest' test
+
+source ./.env.local && mvn -q -Dtest=com.abnamro.gitlab.runner.CucumberTest \
+  -Dcucumber.filter.tags='@edgeCaseTest' test
