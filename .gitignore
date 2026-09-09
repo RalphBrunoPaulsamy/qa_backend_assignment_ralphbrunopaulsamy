@@ -1,0 +1,16 @@
+# Local credentials
+.env.local
+
+# Maven output
+target/
+
+# Logs
+logs/
+*.log
+
+# macOS
+.DS_Store
+
+# IDE metadata
+.idea/
+.vscode/

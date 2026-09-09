@@ -7,6 +7,8 @@ import io.restassured.response.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+
 /**
  * REST client for the GitLab project Issues API.
  *
@@ -24,8 +26,26 @@ public class GitLabIssueClient {
         this.projectId = TestConfig.getProjectId();
     }
 
-    public GitLabIssueClient(String projectId) {
-        this.projectId = projectId;
+    /**
+     * Sends POST /projects/:id/issues with the issue title and default description.
+     *
+     * @param title issue title to create
+     * @return GitLab's create-issue response
+     */
+    public Response createIssue(String title) {
+        LOGGER.info("Creating issue with title: {}", title);
+
+        return TestConfig.getAuthenticatedSpec()
+                .body(Map.of(
+                        "title", title,
+                        "description", "Created by automated CRUD workflow"
+                ))
+                .when()
+                .post("/projects/{projectId}/issues", projectId)
+                .then()
+                .log().ifValidationFails()
+                .extract()
+                .response();
     }
 
     /**
@@ -37,7 +57,7 @@ public class GitLabIssueClient {
      */
     public Response createIssue(CreateIssueRequest request) {
         LOGGER.info("Creating issue with title: {}", request.getTitle());
-        
+
         return TestConfig.getAuthenticatedSpec()
                 .body(request)
                 .when()
@@ -69,6 +89,26 @@ public class GitLabIssueClient {
     }
 
     /**
+     * Sends PUT /projects/:id/issues/:issue_iid with a new title.
+     *
+     * @param issueIid project-scoped internal issue ID
+     * @param title updated issue title
+     * @return GitLab's update-issue response
+     */
+    public Response updateIssue(Integer issueIid, String title) {
+        LOGGER.info("Updating issue IID: {} with title: {}", issueIid, title);
+
+        return TestConfig.getAuthenticatedSpec()
+                .body(Map.of("title", title))
+                .when()
+                .put("/projects/{projectId}/issues/{issueIid}", projectId, issueIid)
+                .then()
+                .log().ifValidationFails()
+                .extract()
+                .response();
+    }
+
+    /**
      * Sends PUT /projects/:id/issues/:issue_iid with changed fields as JSON.
      * Fields omitted from the request remain unchanged. GitLab normally
      * returns the updated issue with HTTP 200.
@@ -79,7 +119,7 @@ public class GitLabIssueClient {
      */
     public Response updateIssue(Integer issueIid, UpdateIssueRequest request) {
         LOGGER.info("Updating issue IID: {} with state: {}", issueIid, request.getState_event());
-        
+
         return TestConfig.getAuthenticatedSpec()
                 .body(request)
                 .when()
@@ -110,41 +150,4 @@ public class GitLabIssueClient {
                 .response();
     }
 
-    /**
-     * Sends GET /projects/:id/issues without filters.
-     * GitLab returns a JSON array of issues, normally with HTTP 200.
-     *
-     * @return GitLab's issue list response
-     */
-    public Response listIssues() {
-        LOGGER.info("Listing all issues in project: {}", projectId);
-        
-        return TestConfig.getAuthenticatedSpec()
-                .when()
-                .get("/projects/{projectId}/issues", projectId)
-                .then()
-                .log().ifValidationFails()
-                .extract()
-                .response();
-    }
-
-    /**
-     * Sends GET /projects/:id/issues?state={state}.
-     * The state filter is typically "opened" or "closed".
-     *
-     * @param state issue state used to filter the result
-     * @return GitLab's filtered issue list response
-     */
-    public Response listIssuesByState(String state) {
-        LOGGER.info("Listing issues with state: {}", state);
-        
-        return TestConfig.getAuthenticatedSpec()
-                .queryParam("state", state)
-                .when()
-                .get("/projects/{projectId}/issues", projectId)
-                .then()
-                .log().ifValidationFails()
-                .extract()
-                .response();
-    }
 }
